@@ -118,6 +118,15 @@ class inn_SettingsPage {
             'inn-setting-admin',
             'inn_section_id'
         );
+		
+		add_settings_field(
+            'debugmode',
+            'Debug Mode [html|console|all]',
+            array( $this, 'app_debugmode_callback' ),
+            'inn-setting-admin',
+            'inn_section_id'
+        );
+
     }
 
     /**
@@ -145,6 +154,9 @@ class inn_SettingsPage {
 		
         if( isset( $input['app_defcon'] ) )
             $new_input['app_defcon'] = sanitize_text_field( $input['app_defcon'] );
+
+        if( isset( $input['debugmode'] ) )
+            $new_input['debugmode'] = sanitize_text_field( $input['debugmode'] );
 		
         return $new_input;
     }
@@ -205,6 +217,14 @@ class inn_SettingsPage {
         printf(
             '<input type="text" id="app_defcon" name="inn-auth_options[app_defcon]" value="%s" />',
             isset( $this->options['app_defcon'] ) ? esc_attr( $this->options['app_defcon']) : ''
+        );
+    }
+	
+	public function app_debugmode_callback()
+    {
+        printf(
+            '<input type="text" id="debugmode" name="inn-auth_options[debugmode]" value="%s" />',
+            isset( $this->options['debugmode'] ) ? esc_attr( $this->options['debugmode']) : ''
         );
     }
 }

@@ -24,3 +24,21 @@
 .debugfn {
 	color: #ccc;
 }
+
+.log {
+	padding: 0 0.7em;
+	margin-right: 1em;
+}
+
+.log_error {
+	color: #fff;
+	background-color: orangered;
+}
+
+.log_info {
+	background-color: LightSkyBlue;
+}
+
+.log_warning {
+	background-color: LightYellow;
+}

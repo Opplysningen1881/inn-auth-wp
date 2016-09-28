@@ -19,6 +19,7 @@ require_once( $parse_uri[0] . 'wp-load.php' );
 
 require_once "inn-options.php";
 require_once "inn-authenticate.php";
+require_once "inn-Log.php";
 
 define("INN_AUTH_PLUGIN_DIR", trailingslashit( get_bloginfo('wpurl') ).PLUGINDIR.'/'. dirname( plugin_basename(__FILE__) ) );
 
@@ -180,5 +181,43 @@ function save_inn_user_profile_fields( $user_id ) {
 add_action( 'personal_options_update', 'save_inn_user_profile_fields' );
 add_action( 'edit_user_profile_update', 'save_inn_user_profile_fields' );
 add_action( 'register_post', 'save_inn_user_profile_fields' );
+
+// Scheduling app sessions
+
+function appsession_renewal( $schedules ) {
+    $schedules['twentyfive_minutes'] = array(
+        'interval' => 1500,
+        'display'  => esc_html__( 'Every Twenty Five Minutes' ),
+    );
+ 
+    return $schedules;
+}
+
+add_filter( 'inn_cron_schedules', 'appsession_renewal' );
+
+function inn_appsession_cron_exec() {
+	$log = new inn_Log();
+	
+	$apptoken = new inn_ApplicationToken();
+	$appsession = new inn_ApplicationSession();
+	
+	if($appsession->checkAppSessionExpired($apptoken->getAppToken())) {
+		$log->info("inn_appsession_cron_exec: AppSession has expired. Initializing new session.");
+		$appsession->initializeAppSession();
+	} else {
+		$log->info("inn_appsession_cron_exec: AppSession has not expired. Renewing the session.");
+		$appsession->renewAppSession($apptoken->getAppToken());
+	}
+	
+	if( !wp_next_scheduled( 'inn_appsession_cron_hook' ) ) {
+		$sch = wp_schedule_event( time(), 'twentyfive_minutes', 'inn_appsession_cron_hook' );
+		if($sch) {
+			$log->info("inn_appsession_cron_exec: Schedule started: twentyfive_minutes, inn_appsession_cron_hook");
+			$success = true;
+		}		
+	}
+}
+
+add_action( 'inn_appsession_cron_hook', 'inn_appsession_cron_exec' );
 
 ?>
