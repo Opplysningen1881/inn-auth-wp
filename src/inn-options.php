@@ -23,14 +23,14 @@ class inn_SettingsPage {
     {
         // This page will be under "Settings"
         add_options_page(
-            'Innstillinger for INN-auth', 
-            'INN-auth', 
-            'manage_options', 
-            'inn-setting-admin', 
+            'Innstillinger for INN-auth',
+            'INN-auth',
+            'manage_options',
+            'inn-setting-admin',
             array( $this, 'create_admin_page' )
         );
     }
-	
+
 	/**
      * Options page callback
      */
@@ -40,24 +40,24 @@ class inn_SettingsPage {
         $this->options = get_option( 'inn-auth_options' );
         ?>
         <div class="wrap">
-            <h2>Innstillinger for INN-auth</h2>           
+            <h2>Innstillinger for INN-auth</h2>
             <form method="post" action="options.php">
             <?php
                 // This prints out all hidden setting fields
-                settings_fields( 'inn_option_group' );   
+                settings_fields( 'inn_option_group' );
                 do_settings_sections( 'inn-setting-admin' );
-                submit_button(); 
+                submit_button();
             ?>
             </form>
         </div>
         <?php
     }
-	
+
 	/**
      * Register and add settings
      */
     public function page_init()
-    {        
+    {
         register_setting(
             'inn_option_group', // Option group
             'inn-auth_options', // Option name
@@ -80,6 +80,14 @@ class inn_SettingsPage {
         );
 
         add_settings_field(
+            'sts_url', // ID
+            'STS URL', // Title
+            array( $this, 'sts_url_callback' ), // Callback
+            'inn-setting-admin', // Page
+            'inn_section_id' // Section
+        );
+
+        add_settings_field(
             'app_id',
             'APP_ID',
             array( $this, 'app_id_callback' ),
@@ -94,7 +102,7 @@ class inn_SettingsPage {
             'inn-setting-admin',
             'inn_section_id'
         );
-		
+
         add_settings_field(
             'app_secret',
             'APP_SECRET',
@@ -102,7 +110,7 @@ class inn_SettingsPage {
             'inn-setting-admin',
             'inn_section_id'
         );
-		
+
 		add_settings_field(
             'app_url',
             'Application URL',
@@ -110,7 +118,7 @@ class inn_SettingsPage {
             'inn-setting-admin',
             'inn_section_id'
         );
-		
+
 		add_settings_field(
             'app_defcon',
             'Minimum Security Level',
@@ -118,7 +126,7 @@ class inn_SettingsPage {
             'inn-setting-admin',
             'inn_section_id'
         );
-		
+
 		add_settings_field(
             'debugmode',
             'Debug Mode [html|console|all]',
@@ -140,10 +148,13 @@ class inn_SettingsPage {
         if( isset( $input['sso_url'] ) )
             $new_input['sso_url'] = sanitize_text_field( $input['sso_url'] );
 
+        if( isset( $input['sts_url'] ) )
+            $new_input['sts_url'] = sanitize_text_field( $input['sts_url'] );
+
         if( isset( $input['app_id'] ) )
             $new_input['app_id'] = sanitize_text_field( $input['app_id'] );
 
-		if( isset( $input['app_name'] ) )
+        if( isset( $input['app_name'] ) )
             $new_input['app_name'] = sanitize_text_field( $input['app_name'] );
 
         if( isset( $input['app_secret'] ) )
@@ -151,17 +162,17 @@ class inn_SettingsPage {
 
         if( isset( $input['app_url'] ) )
             $new_input['app_url'] = sanitize_text_field( $input['app_url'] );
-		
+
         if( isset( $input['app_defcon'] ) )
             $new_input['app_defcon'] = sanitize_text_field( $input['app_defcon'] );
 
         if( isset( $input['debugmode'] ) )
             $new_input['debugmode'] = sanitize_text_field( $input['debugmode'] );
-		
+
         return $new_input;
     }
 
-    /** 
+    /**
      * Print the Section text
      */
     public function print_section_info()
@@ -169,7 +180,7 @@ class inn_SettingsPage {
         print 'Legg inn konfigurasjonsdetaljer som mottatt fra Opplysningen:';
     }
 
-    /** 
+    /**
      * Get the settings option array and print one of its values
      */
     public function sso_url_callback()
@@ -180,6 +191,14 @@ class inn_SettingsPage {
         );
     }
 
+    public function sts_url_callback()
+    {
+        printf(
+            '<input type="text" id="sts_url" name="inn-auth_options[sts_url]" value="%s" />',
+            isset( $this->options['sts_url'] ) ? esc_attr( $this->options['sts_url']) : ''
+        );
+    }
+
     public function app_id_callback()
     {
         printf(
@@ -187,7 +206,7 @@ class inn_SettingsPage {
             isset( $this->options['app_id'] ) ? esc_attr( $this->options['app_id']) : ''
         );
     }
-	
+
 	public function app_name_callback()
     {
         printf(
@@ -195,7 +214,7 @@ class inn_SettingsPage {
             isset( $this->options['app_name'] ) ? esc_attr( $this->options['app_name']) : ''
         );
     }
-	
+
 	public function app_secret_callback()
     {
         printf(
@@ -211,7 +230,7 @@ class inn_SettingsPage {
             isset( $this->options['app_url'] ) ? esc_attr( $this->options['app_url']) : ''
         );
     }
-	
+
 	public function app_defcon_callback()
     {
         printf(
@@ -219,7 +238,7 @@ class inn_SettingsPage {
             isset( $this->options['app_defcon'] ) ? esc_attr( $this->options['app_defcon']) : ''
         );
     }
-	
+
 	public function app_debugmode_callback()
     {
         printf(

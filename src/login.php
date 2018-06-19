@@ -1,46 +1,69 @@
 <?php
 require_once("inn-authenticate.php");
 require_once("inn-Log.php");
-require_once( "inn-UserToken.php" );
+//require_once("inn-ApplicationToken.php");
+require_once("inn-UserToken.php");
 
-$wpsourceurl = "";
+define("INN_AUTH_PLUGIN_DIR", trailingslashit( get_bloginfo('wpurl') ).PLUGINDIR.'/'. dirname( plugin_basename(__FILE__) ) );
 
+$auth = new inn_authenticate();
 $log = new inn_Log();
+$options = get_option("inn-auth_options");
+
+$log->info("SSO URL: " . $options["sso_url"]);
+$log->info("STS URL: " . $options["sts_url"]);
+$log->info("INN_AUTH_PLUGIN_DIR: " . INN_AUTH_PLUGIN_DIR);
+
+
+/*
+$redirectURI = INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl;
+
+$params = array(
+	"redirectURI" => $redirectURI,
+	"UserCheckout" => $_GET["UserCheckout"]
+);
+
+$redirecturl = $options["sso_url"] . "/login?" . http_build_query($params);
 
 if (isset($_GET["wpsourceurl"])) {
 	$wpsourceurl = $_GET["wpsourceurl"];
 }
+*/
+
+$wpsourceurl = isset($_GET["wpsourceurl"]) ? $_GET["wpsourceurl"] : "";
+
+
+
+// redirectURI: The wordpress destination in which to return to after successful SSO
+$redirectURI = sprintf("%s/login.php?wpsourceurl=%s",
+	INN_AUTH_PLUGIN_DIR,
+	$wpsourceurl
+);
+
+// redirecturl: The INN SSO LOGIN url to redirect to. Needs to include the redirectURI to return to
+$redirecturl = sprintf("%s/login?%s",
+	$options["sso_url"],
+	http_build_query(array(
+		"UserCheckout" => $_GET["UserCheckout"],
+		"redirectURI" => $redirectURI
+	))
+);
+
+$log->info("Login redirecturl: " . $redirecturl);
+
+
 
 if (!isset($_GET["userticket"])) {
-	$options = get_option("inn-auth_options");
-//	$redirecturl = $options["sso_url"] . "/login?redirectURI=" . INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl;
-//		$redirecturl = "https://inn-prod-sso.capra.cc/oidsso/login?UserCheckout=" . $_GET["UserCheckout"] . "&redirectURI=" . INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl;
-
-	$params = array("redirectURI" => INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl,
-		"UserCheckout" => $_GET["UserCheckout"]);
-
-	$redirecturl = "https://sso.opplysningen.no/oidsso/login?" . http_build_query($params);
-	
 	echo "<p>Start redirect: <a href=\"" . $redirecturl . "\">" . $redirecturl . "</a></p>";
-	
+
 	wp_redirect($redirecturl, 302);
 }
 else {
 	$userticket = $_GET["userticket"];
 	$log->info("Login: userticket=" . $userticket);
-	
-	$auth = new inn_authenticate();
-	$utoken = new inn_UserToken();
-	
-	$usertoken = $utoken->getUserToken($userticket);
-	
-	if (strlen($usertoken) == 0) {
-		$log->warn("Login: No usertoken");
-		die ("No usertoken.");
-	}
-	
-	$res = $auth->authenticate($usertoken);
-	
+
+	$res = $auth->authenticate($userticket, $redirectURI);
+
 	if($res) {
 		echo "<p style=\"color:green;\">Autentisert!</p>";
 		echo "<p>G&aring; videre til <a href=\"" . get_bloginfo('wpurl') . $wpsourceurl . "\">" . get_bloginfo('wpurl') . $wpsourceurl . "</p>";

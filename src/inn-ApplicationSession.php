@@ -8,13 +8,13 @@ class inn_ApplicationSession {
 	private $applicationToken;
 	private $log;
 	private $options;
-	
+
 	function __construct() {
 		$this->applicationToken = new inn_ApplicationToken();
 		$this->log = new inn_Log();
 		$this->options = get_option("inn-auth_options");
 	}
-	
+
 	function initializeAppSession() {
 		$ch = curl_init();
 		$xmlstring = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
@@ -27,61 +27,61 @@ class inn_ApplicationSession {
 								<minimumsecuritylevel>" . $this->options["app_defcon"] . "</minimumsecuritylevel>
 							</params>
 						</applicationcredential>";
-		
+
 		$this->log->info("initializeAppSession(), xmlstring: \n" . $xmlstring);
-		
-		curl_setopt($ch, CURLOPT_URL, $this->options["sso_url"] . "/tokenservice/logon");
+
+		curl_setopt($ch, CURLOPT_URL, $this->options["sts_url"] . "/tokenservice/logon");
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, "applicationcredential=" . $xmlstring);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 		$server_output = curl_exec($ch);
-		
+
 		if(curl_errno($ch))
 		{
 			$this->log->error("initializeAppSession() error: " . curl_error($ch));
 		}
 		curl_close ($ch);
-		
+
 		$this->applicationToken->setAppToken($server_output);
 	}
-	
-	function renewAppSession($apptoken) {		
+
+	function renewAppSession($apptoken) {
 		$ch = curl_init();
-		
-		curl_setopt($ch, CURLOPT_URL, sprintf("%s/tokenservice/%s/renew_applicationtoken", $this->options["sso_url"],  $this->applicationToken->getAppTokenID($apptoken)));
+
+		curl_setopt($ch, CURLOPT_URL, sprintf("%s/tokenservice/%s/renew_applicationtoken", $this->options["sts_url"],  $this->applicationToken->getAppTokenID($apptoken)));
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 		$server_output = curl_exec($ch);
 		$this->log->info("renewAppSession() ApptokenId: \n" . $this->applicationToken->getApptokenId($server_output));
-		
+
 		if(curl_errno($ch))
 		{
 			$this->log->error("renewAppSession() error: " . curl_error($ch));
 		}
 		curl_close ($ch);
-		
+
 		$this->applicationToken->setAppToken($server_output);
 		return $this->applicationToken->getAppToken();
 	}
-	
+
 	function checkAppSessionExpired($apptoken) {
 		$this->log->info("checkAppSessionExpired() system timestamp: " . time());
 		$this->log->info("checkAppSessionExpired() apptoken expires: " . $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($apptoken)));
-		
+
 		$expired = true;
-		
+
 		if($this->applicationToken->getAppTokenExpiresSec($apptoken) > time()) {
 			$expired = false;
 			$this->log->info(sprintf("checkAppSessionExpired() App session has not expired. System timestamp=%s, apptoken expires=%s", time(), $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($apptoken))));
-			
+
 			// $renewedApptoken = $this->renewAppSession($apptoken);
 			// $this->log->info(sprintf("checkAppSessionExpired() App session has been renewed. New apptoken expires=" . $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($renewedApptoken))));
 		}
-		
+
 		return $expired;
 	}
 }
