@@ -1,11 +1,8 @@
 <?php
-require_once( "inn-ApplicationSession.php" );
-require_once( "inn-ApplicationToken.php" );
-require_once( "inn-Log.php" );
+require_once("inn-ApplicationToken.php");
+require_once("inn-Log.php");
 
 class inn_UserToken {
-	private $log;
-	private $options;
 
 	function __construct() {
 		$this->log = new inn_Log();
@@ -14,18 +11,13 @@ class inn_UserToken {
 
 	function getUserToken($userTicket) {
 		$apptoken = new inn_ApplicationToken();
-		$appsession = new inn_ApplicationSession();
-
-		if($appsession->checkAppSessionExpired($apptoken->getAppToken())) {
-			$appsession->initializeAppSession();
-		}
 
 		$apptokenXML = $apptoken->getAppToken();
 		$this->log->info("getUserToken(), apptokenXML: " . $apptokenXML);
 
-		$apptokenSimpleXml = simplexml_load_string($apptokenXML);
-		$apptokenID = $apptokenSimpleXml -> params -> applicationtokenID;
+		$apptokenID = $apptoken->getAppTokenID($apptokenXML);
 		$this->log->info("getUserToken(), apptokenID: " . $apptokenID);
+
 
 		$ch = curl_init();
 
@@ -54,11 +46,6 @@ class inn_UserToken {
 
 	function getUserTokenById($userTokenId) {
 		$apptoken = new inn_ApplicationToken();
-		$appsession = new inn_ApplicationSession();
-
-		if($appsession->checkAppSessionExpired($apptoken->getAppToken())) {
-			$appsession->initializeAppSession();
-		}
 
 		$apptokenXML = $apptoken->getAppToken();
 

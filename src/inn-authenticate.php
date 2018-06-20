@@ -3,23 +3,35 @@
 $parse_uri = explode( "wp-content", __FILE__ );
 require_once($parse_uri[0] . "wp-load.php");
 require_once("inn-Log.php");
+require_once("inn-ApplicationSession.php");
 require_once("inn-ApplicationToken.php");
 require_once("inn-UserToken.php");
 
 class inn_authenticate {
-	private $options;
-	private $log;
-	private $utoken;
 
 	public function __construct() {
 		$this->options = get_option("inn-auth_options");
-		$this->apptoken = new inn_ApplicationToken();
+//		$this->appsession = new inn_ApplicationSession();
+		$this->apptoken = new inn_ApplicationToken(); // We need an apptoken to build the the $consenturl
 		$this->utoken = new inn_UserToken();
 		$this->log = new inn_Log();
 		$this->log->info("class inn_authenticate instantiated");
 	}
 
 	function authenticate($userticket, $redirectURI) {
+		// $apptokenXML = $this->apptoken->getAppToken();
+		//
+		// switch($this->appsession->checkAppSession($apptokenXML)) {
+		// 	case NULL:
+		// 		// ApplicationSession doesn't exist, will logon the application
+		// 		$this->appsession->initializeAppSession();
+		// 		break;
+		// 	case "expired":
+		// 		// ApplicationSession has expired, renew.
+		// 		$this->appsession->renewAppSession($apptokenXML);
+		// 		break;
+		// }
+
 		$usertoken = $this->utoken->getUserToken($userticket);
 		$this->log->info("authenticate, got usertoken: " . $usertoken);
 

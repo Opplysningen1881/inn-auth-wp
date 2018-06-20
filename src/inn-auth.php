@@ -203,7 +203,7 @@ function inn_appsession_cron_exec() {
 	$apptoken = new inn_ApplicationToken();
 	$appsession = new inn_ApplicationSession();
 
-	if($appsession->checkAppSessionExpired($apptoken->getAppToken())) {
+	if($appsession->checkAppSession($apptoken->getAppToken()) == "expired") {
 		$log->info("inn_appsession_cron_exec: AppSession has expired. Initializing new session.");
 		$appsession->initializeAppSession();
 	} else {

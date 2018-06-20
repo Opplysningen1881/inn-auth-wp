@@ -5,9 +5,6 @@ require_once( "inn-ApplicationToken.php" );
 require_once( "inn-Log.php" );
 
 class inn_ApplicationSession {
-	private $applicationToken;
-	private $log;
-	private $options;
 
 	function __construct() {
 		$this->applicationToken = new inn_ApplicationToken();
@@ -68,21 +65,22 @@ class inn_ApplicationSession {
 		return $this->applicationToken->getAppToken();
 	}
 
-	function checkAppSessionExpired($apptoken) {
+	function checkAppSession($apptoken) {
 		$this->log->info("checkAppSessionExpired() system timestamp: " . time());
 		$this->log->info("checkAppSessionExpired() apptoken expires: " . $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($apptoken)));
 
-		$expired = true;
+		$status = NULL;
 
-		if($this->applicationToken->getAppTokenExpiresSec($apptoken) > time()) {
-			$expired = false;
-			$this->log->info(sprintf("checkAppSessionExpired() App session has not expired. System timestamp=%s, apptoken expires=%s", time(), $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($apptoken))));
-
-			// $renewedApptoken = $this->renewAppSession($apptoken);
-			// $this->log->info(sprintf("checkAppSessionExpired() App session has been renewed. New apptoken expires=" . $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($renewedApptoken))));
+		if($this->applicationToken->getApplicationID($apptoken) == $this->options["app_id"]) {
+			if($this->applicationToken->getAppTokenExpiresSec($apptoken) > time()) {
+				$status = "ok";
+				$this->log->info(sprintf("checkAppSessionExpired() App session has not expired. System timestamp=%s, apptoken expires=%s", time(), $this->applicationToken->ts2dt($this->applicationToken->getAppTokenExpires($apptoken))));
+			} else {
+				$status = "expired";
+			}
 		}
 
-		return $expired;
+		return $status;
 	}
 }
 

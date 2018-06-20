@@ -1,7 +1,6 @@
 <?php
 require_once("inn-authenticate.php");
 require_once("inn-Log.php");
-//require_once("inn-ApplicationToken.php");
 require_once("inn-UserToken.php");
 
 define("INN_AUTH_PLUGIN_DIR", trailingslashit( get_bloginfo('wpurl') ).PLUGINDIR.'/'. dirname( plugin_basename(__FILE__) ) );
@@ -15,24 +14,7 @@ $log->info("STS URL: " . $options["sts_url"]);
 $log->info("INN_AUTH_PLUGIN_DIR: " . INN_AUTH_PLUGIN_DIR);
 
 
-/*
-$redirectURI = INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl;
-
-$params = array(
-	"redirectURI" => $redirectURI,
-	"UserCheckout" => $_GET["UserCheckout"]
-);
-
-$redirecturl = $options["sso_url"] . "/login?" . http_build_query($params);
-
-if (isset($_GET["wpsourceurl"])) {
-	$wpsourceurl = $_GET["wpsourceurl"];
-}
-*/
-
 $wpsourceurl = isset($_GET["wpsourceurl"]) ? $_GET["wpsourceurl"] : "";
-
-
 
 // redirectURI: The wordpress destination in which to return to after successful SSO
 $redirectURI = sprintf("%s/login.php?wpsourceurl=%s",
@@ -50,7 +32,6 @@ $redirecturl = sprintf("%s/login?%s",
 );
 
 $log->info("Login redirecturl: " . $redirecturl);
-
 
 
 if (!isset($_GET["userticket"])) {

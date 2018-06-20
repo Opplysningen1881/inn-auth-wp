@@ -16,6 +16,9 @@ Wordpress plugin for Opplysningen INN
 
 # Usage
 
+## Options
+
+
 ## Shortcodes
 
 `[inn-login]`

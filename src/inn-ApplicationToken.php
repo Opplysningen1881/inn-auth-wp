@@ -11,10 +11,14 @@ class inn_ApplicationToken {
 	function setAppToken($apptoken) {
 		$res = update_option("inn_apptoken", $apptoken);
 
-		if($res)
+		if($res) {
 			$this->log->info("setAppToken() success: " . $apptoken);
+			return $apptoken;
+		}
 		else
-			$this->log->error("setAppToken() failed: " . $apptoken);
+			{
+				$this->log->error("setAppToken() failed: " . $apptoken);
+			}
 	}
 
 	function getAppToken() {
