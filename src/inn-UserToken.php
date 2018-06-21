@@ -154,10 +154,10 @@ class inn_UserToken {
 	}
 
 	function formatDeliveryaddress($deliveryAddressJSON) {
-		//$deliveryAddress = $deliveryAddressJSON;
+		$this->log->info("formatDeliveryaddress JSON: " . $deliveryAddressJSON);
 		$deliveryAddress = json_decode($deliveryAddressJSON, true);
 
-		$addressString = "\n<ul>";
+		$addressString = "\n<ul class=\"inn-addresscard\">";
 
 		foreach($deliveryAddress as $address) {
 			$addressString .= "\n\t<li>" . $address["name"];

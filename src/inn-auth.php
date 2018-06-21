@@ -24,26 +24,33 @@ require_once "inn-Log.php";
 
 define("INN_AUTH_PLUGIN_DIR", trailingslashit( get_bloginfo('wpurl') ).PLUGINDIR.'/'. dirname( plugin_basename(__FILE__) ) );
 
+$options = get_option("inn-auth_options");
 
 wp_register_style('inn_styles', plugins_url('style.css',__FILE__ ));
+wp_register_style('bootstrap_styles', plugins_url('vendor/bootstrap-4.0.0/css/bootstrap.min.css',__FILE__ ));
+wp_register_script('bootstrap_scripts', plugins_url('vendor/bootstrap-4.0.0/js/bootstrap.min.js',__FILE__ ));
 
 function inn_styles() {
 	wp_enqueue_style('inn_styles');
+	wp_enqueue_style('bootstrap_styles');
+	wp_enqueue_script('bootstrap_scripts');
 }
+
 add_action( 'wp_enqueue_scripts','inn_styles');
 
 
 function inn_loginButton($atts) {
+	global $options;
 	$auth = new inn_authenticate();
 
 	if ( $auth->checkSessionId() ) {
-		$button = "<a href=" . wp_logout_url(home_url()) . " role=\"button\" class=\"inn-btn-login\">Logg ut</a>";
+		$button = "<a href=" . wp_logout_url(home_url()) . " role=\"button\" class=\"" . $options["button_style"] . "\">Logg ut</a>";
 	} else {
 		$a = shortcode_atts(array(
 			"text" => "Logg INN",
 		), $atts);
 
-		$button = "<a href=\"" . INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $_SERVER["REQUEST_URI"] . "&UserCheckout=false\" role=\"button\" class=\"inn-btn-login\">" . $a["text"] . "</a>";
+		$button = "<a href=\"" . INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $_SERVER["REQUEST_URI"] . "&UserCheckout=false\" role=\"button\" class=\"" . $options["button_style"] . "\">" . $a["text"] . "</a>";
 	}
 
 	return $button;
@@ -53,12 +60,20 @@ add_shortcode("inn-login", "inn_loginButton");
 add_action("login_form", "inn_loginButton");
 
 function inn_checkoutButton($atts) {
+	global $options;
 
 	$a = shortcode_atts(array(
 		"text" => "Velg adresse med INN",
 	), $atts);
 
-	$button = "<a href=\"" . INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $_SERVER["REQUEST_URI"] . "&UserCheckout=true\" role=\"button\" class=\"inn-btn-login\">" . $a["text"] . "</a>";
+	$button = sprintf("<a href=\"%s\" role=\"button\" class=\"%s\">%s</a>",
+		INN_AUTH_PLUGIN_DIR . "/login.php?" . http_build_query(array(
+			"wpsourceurl" => $_SERVER["REQUEST_URI"],
+			"UserCheckout" => "true"
+		)),
+		$options["button_style"],
+		$a["text"]
+	);
 
 	return $button;
 }
@@ -67,6 +82,7 @@ add_shortcode("inn-checkout", "inn_checkoutButton");
 
 
 function inn_checkSession() {
+	global $options;
 
 	$params = array(
 		"redirectURI" => INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl,
@@ -75,16 +91,15 @@ function inn_checkSession() {
 
 	$a = shortcode_atts(array(
 		"text" => "INN sessionCheck",
-		"href" => "https://inn-prod-sso.capra.cc/oidsso/login?" . http_build_query($params),
+		"href" => $options["sso_url"] . http_build_query($params),
 	), $atts);
 
-
-	$button = "<a href=\"" . $a["href"] . "\" class=\"inn-btn-login\">" . $a["text"] . "</a>";
+	$button = "<a href=\"" . $a["href"] . "\" class=\"" . $options["button_style"] . "\">" . $a["text"] . "</a>";
 
 	return $button;
 }
 
-add_shortcode("inn_checkSessionButton", "inn_checkSession");
+add_shortcode("inn-checkSessionButton", "inn_checkSession");
 
 function inn_userMetaFirstName(){
 	$firstname = get_user_meta(get_current_user_id(), "first_name", true);
@@ -111,8 +126,12 @@ add_shortcode("inn-fullname", "inn_userMetaFullName");
 
 
 function inn_userMetaAddress(){
-	$address = get_user_meta(get_current_user_id(), "adresse", true);
-	return $address;
+	$utoken = new inn_UserToken();
+
+	$addressJSON = get_user_meta(get_current_user_id(), "adresse", true);
+	$formattedaddress = $utoken->formatDeliveryaddress($addressJSON);
+
+	return $formattedaddress;
 }
 
 add_shortcode("inn-address", "inn_userMetaAddress");
@@ -131,6 +150,13 @@ function inn_printMyToken(){
 
 	if($auth->checkSessionId()) {
 		$tokenstring = $utoken->printMyTokenFormatted();
+
+		// $wpuserid = get_current_user_id();
+		// $wpusertokenid = get_user_meta($wpuserid, "inn_usertokenid", true);
+		//
+		// $tokenstring .= "<button class=\"btn btn-outline-primary\" type=\"button\" data-toggle=\"collapse\" data-target=\"#usertokenCollapse\" aria-expanded=\"false\" aria-controls=\"collapseExample\">Usertoken</button>";
+		// $tokenstring .= sprintf("<div class=\"collapse\" id=\"usertokenCollapse\">\n<div class=\"card card-body\">%s</div>\n</div>", $utoken->getUserTokenById($wpusertokenid));
+
 	} else {
 		$tokenstring = "<p>Fant ingen aktiv INN-sesjon for denne WP-brukeren.</p>";
 	}
@@ -141,7 +167,6 @@ function inn_printMyToken(){
 }
 
 add_shortcode("inn-printmytoken", "inn_printMyToken");
-
 
 
 

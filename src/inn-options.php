@@ -111,7 +111,7 @@ class inn_SettingsPage {
             'inn_section_id'
         );
 
-		add_settings_field(
+	      add_settings_field(
             'app_url',
             'Application URL',
             array( $this, 'app_url_callback' ),
@@ -119,7 +119,7 @@ class inn_SettingsPage {
             'inn_section_id'
         );
 
-		add_settings_field(
+	      add_settings_field(
             'app_defcon',
             'Minimum Security Level',
             array( $this, 'app_defcon_callback' ),
@@ -127,7 +127,7 @@ class inn_SettingsPage {
             'inn_section_id'
         );
 
-		add_settings_field(
+	      add_settings_field(
             'debugmode',
             'Debug Mode [html|console|all]',
             array( $this, 'app_debugmode_callback' ),
@@ -135,6 +135,13 @@ class inn_SettingsPage {
             'inn_section_id'
         );
 
+        add_settings_field(
+            'button_style',
+            'Button style (CSS class name)',
+            array( $this, 'button_style_callback' ),
+            'inn-setting-admin',
+            'inn_section_id'
+        );
     }
 
     /**
@@ -168,6 +175,9 @@ class inn_SettingsPage {
 
         if( isset( $input['debugmode'] ) )
             $new_input['debugmode'] = sanitize_text_field( $input['debugmode'] );
+
+        if( isset( $input['button_style'] ) )
+            $new_input['button_style'] = sanitize_text_field( $input['button_style'] );
 
         return $new_input;
     }
@@ -244,6 +254,14 @@ class inn_SettingsPage {
         printf(
             '<input type="text" id="debugmode" name="inn-auth_options[debugmode]" value="%s" />',
             isset( $this->options['debugmode'] ) ? esc_attr( $this->options['debugmode']) : ''
+        );
+    }
+
+  public function button_style_callback()
+    {
+        printf(
+            '<input type="text" id="button_style" name="inn-auth_options[button_style]" value="%s" />',
+            isset( $this->options['button_style'] ) ? esc_attr( $this->options['button_style']) : 'btn btn-outline-primary'
         );
     }
 }

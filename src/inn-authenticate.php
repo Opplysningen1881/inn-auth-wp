@@ -19,19 +19,6 @@ class inn_authenticate {
 	}
 
 	function authenticate($userticket, $redirectURI) {
-		// $apptokenXML = $this->apptoken->getAppToken();
-		//
-		// switch($this->appsession->checkAppSession($apptokenXML)) {
-		// 	case NULL:
-		// 		// ApplicationSession doesn't exist, will logon the application
-		// 		$this->appsession->initializeAppSession();
-		// 		break;
-		// 	case "expired":
-		// 		// ApplicationSession has expired, renew.
-		// 		$this->appsession->renewAppSession($apptokenXML);
-		// 		break;
-		// }
-
 		$usertoken = $this->utoken->getUserToken($userticket);
 		$this->log->info("authenticate, got usertoken: " . $usertoken);
 
