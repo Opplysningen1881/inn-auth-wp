@@ -91,7 +91,7 @@ function inn_checkSession() {
 
 	$a = shortcode_atts(array(
 		"text" => "INN sessionCheck",
-		"href" => $options["sso_url"] . http_build_query($params),
+		"href" => sprintf("%s/login?%s", $options["sso_url"],  http_build_query($params)),
 	), $atts);
 
 	$button = "<a href=\"" . $a["href"] . "\" class=\"" . $options["button_style"] . "\">" . $a["text"] . "</a>";
@@ -224,16 +224,14 @@ add_filter( 'inn_cron_schedules', 'appsession_renewal' );
 
 function inn_appsession_cron_exec() {
 	$log = new inn_Log();
-
-	$apptoken = new inn_ApplicationToken();
 	$appsession = new inn_ApplicationSession();
 
-	if($appsession->checkAppSession($apptoken->getAppToken()) == "expired") {
+	if($appsession->checkAppSession() == "expired") {
 		$log->info("inn_appsession_cron_exec: AppSession has expired. Initializing new session.");
 		$appsession->initializeAppSession();
 	} else {
 		$log->info("inn_appsession_cron_exec: AppSession has not expired. Renewing the session.");
-		$appsession->renewAppSession($apptoken->getAppToken());
+		$appsession->renewAppSession();
 	}
 
 	if( !wp_next_scheduled( 'inn_appsession_cron_hook' ) ) {

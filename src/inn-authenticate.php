@@ -11,7 +11,7 @@ class inn_authenticate {
 
 	public function __construct() {
 		$this->options = get_option("inn-auth_options");
-//		$this->appsession = new inn_ApplicationSession();
+		$this->appsession = new inn_ApplicationSession();
 		$this->apptoken = new inn_ApplicationToken(); // We need an apptoken to build the the $consenturl
 		$this->utoken = new inn_UserToken();
 		$this->log = new inn_Log();
@@ -19,6 +19,8 @@ class inn_authenticate {
 	}
 
 	function authenticate($userticket, $redirectURI) {
+		$this->appsession->verifyAppSession();
+
 		$usertoken = $this->utoken->getUserToken($userticket);
 		$this->log->info("authenticate, got usertoken: " . $usertoken);
 
@@ -128,6 +130,9 @@ class inn_authenticate {
 	function checkSessionId() {
 		$result = false;
 		$wpuserid = get_current_user_id();
+
+		$apptokenstatus = $this->appsession->checkAppSession($this->apptoken->getAppToken());
+
 		$this->log->info("checkSessionId() wpuserid: " . $wpuserid);
 
 		if($wpuserid > 0) {
@@ -151,8 +156,9 @@ class inn_authenticate {
 	}
 
 	function getConsentURL($userticket, $redirectURI) {
-		$consenturl = sprintf("%s/getAdressSharingConsent/%s?userticket=%s&redirectURI=%s",
-			$this->options["sso_url"],
+
+		$consenturl = sprintf("%s/%s?userticket=%s&redirectURI=%s",
+			$this->options["consent_url"],
 			$this->apptoken->getAppTokenID($this->apptoken->getAppToken()),
 			$userticket,
 			$redirectURI

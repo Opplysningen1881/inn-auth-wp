@@ -43,8 +43,8 @@ class inn_Log {
 				$this->output2HTML($data);
 				$this->output2Console($data);
 				break;
-			default:
-				echo "\n<script>console.log('inn-auth: Please enter debug mode: possible values are \"console\", \"html\" or \"all\".');</script>";
+//			default:
+//				echo "\n<script>console.log('inn-auth: Please enter debug mode: possible values are \"console\", \"html\" or \"all\".');</script>";
 		}
 
 	}
