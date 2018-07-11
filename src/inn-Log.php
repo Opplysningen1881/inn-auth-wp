@@ -31,7 +31,6 @@ class inn_Log {
 
 
 	function output($data) {
-
 		switch ($this->debugMode) {
 			case "html":
 				$this->output2HTML($data);
@@ -43,10 +42,9 @@ class inn_Log {
 				$this->output2HTML($data);
 				$this->output2Console($data);
 				break;
-//			default:
-//				echo "\n<script>console.log('inn-auth: Please enter debug mode: possible values are \"console\", \"html\" or \"all\".');</script>";
+			default:
+				return;
 		}
-
 	}
 
 	function output2HTML($data) {

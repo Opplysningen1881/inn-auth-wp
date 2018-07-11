@@ -43,7 +43,7 @@ class inn_authenticate {
 
 			$this->log->info("User has no role for this application. Will ask for consent.");
 			echo "<p>We need your consent: <a href=\"" . $consenturl . "\">" . $consenturl . "</a></p>";
-			wp_redirect($consenturl, 302);
+			$this->redirect($consenturl, 302);
 		}
 
 		## debug info
@@ -157,7 +157,8 @@ class inn_authenticate {
 
 	function getConsentURL($userticket, $redirectURI) {
 
-		$consenturl = sprintf("%s/%s?userticket=%s&redirectURI=%s",
+		$consenturl = sprintf("%s/%s/%s?userticket=%s&redirectURI=%s",
+			$this->options["sso_url"],
 			$this->options["consent_url"],
 			$this->apptoken->getAppTokenID($this->apptoken->getAppToken()),
 			$userticket,
@@ -165,6 +166,14 @@ class inn_authenticate {
 		);
 
 		return $consenturl;
+	}
+
+	function redirect($redirecturl, $httpStatusCode = 302) {
+		if($this->options["debugmode"] == "all") {
+			echo "<p>We need your consent: <a href=\"" . $consenturl . "\">" . $consenturl . "</a></p>";;
+		} else {
+			wp_redirect($redirecturl, $httpStatusCode);
+		}
 	}
 }
 ?>

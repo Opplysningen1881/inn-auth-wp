@@ -85,12 +85,12 @@ function inn_checkSession() {
 	global $options;
 
 	$params = array(
-		"redirectURI" => INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl,
-		"sessioncheck" => "true"
+		"SessionCheck" => "true",
+		"redirectURI" => INN_AUTH_PLUGIN_DIR . "/login.php?wpsourceurl=" . $wpsourceurl
 	);
 
 	$a = shortcode_atts(array(
-		"text" => "INN sessionCheck",
+		"text" => "INN SessionCheck",
 		"href" => sprintf("%s/login?%s", $options["sso_url"],  http_build_query($params)),
 	), $atts);
 

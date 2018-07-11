@@ -224,7 +224,7 @@ class inn_SettingsPage {
     {
         printf(
             '<input type="text" id="consent_url" name="inn-auth_options[consent_url]" value="%s" />',
-            isset( $this->options['consent_url'] ) ? esc_attr( $this->options['consent_url']) : 'https://sso.opplysningen.no/oidsso/getAdressSharingConcent'
+            isset( $this->options['consent_url'] ) ? esc_attr( $this->options['consent_url']) : 'getAdressSharingConcent'
         );
     }
 
