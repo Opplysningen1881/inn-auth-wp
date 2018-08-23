@@ -38,6 +38,7 @@ class inn_authenticate {
 			}
 
 			$authenticated = $this->wpSignonUser($wp_user_id, $usertoken);
+			$this->redirect($redirectURI);
 		} else {
 			$consenturl = $this->getConsentURL($userticket, $redirectURI);
 
@@ -173,6 +174,7 @@ class inn_authenticate {
 			echo "<p>We need your consent: <a href=\"" . $consenturl . "\">" . $consenturl . "</a></p>";;
 		} else {
 			wp_redirect($redirecturl, $httpStatusCode);
+			exit;
 		}
 	}
 }

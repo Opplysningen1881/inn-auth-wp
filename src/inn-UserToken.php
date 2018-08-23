@@ -18,7 +18,6 @@ class inn_UserToken {
 		$apptokenID = $apptoken->getAppTokenID($apptokenXML);
 		$this->log->info("getUserToken(), apptokenID: " . $apptokenID);
 
-
 		$ch = curl_init();
 
 		curl_setopt ( $ch, CURLOPT_URL, $this->options["sts_url"] . "/tokenservice/user/" . $apptokenID . "/get_usertoken_by_userticket/");
@@ -48,18 +47,25 @@ class inn_UserToken {
 		$apptoken = new inn_ApplicationToken();
 
 		$apptokenXML = $apptoken->getAppToken();
+		$this->log->info("getUserTokenById(), apptokenXML: " . $apptokenXML);
 
-		$apptokenSimpleXml = simplexml_load_string($apptokenXML);
-		$apptokenID = $apptokenSimpleXml -> params -> applicationtokenID;
+		$apptokenID = $apptoken->getAppTokenID($apptokenXML);
+		$this->log->info("getUserTokenById(), apptokenID: " . $apptokenID);
 
 		$ch = curl_init();
 
 		curl_setopt ( $ch, CURLOPT_URL, $this->options["sts_url"] . "/tokenservice/user/" .$apptokenID . "/get_usertoken_by_usertokenid/");
 		curl_setopt ( $ch, CURLOPT_POST, 1);
-		curl_setopt ( $ch, CURLOPT_POSTFIELDS, http_build_query(array("apptoken" => $apptokenXML , "usertokenid" => $userTokenId)));
+		curl_setopt ( $ch, CURLOPT_POSTFIELDS, http_build_query(array("apptoken" => $apptokenXML, "usertokenid" => $userTokenId)));
 		curl_setopt ( $ch, CURLOPT_HTTPHEADER, array ('Content-Type: application/x-www-form-urlencoded'));
 		curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, true);
+
+		$this->log->info("getUserTokenById(), CURLOPT_URL: " . $this->options["sts_url"] . "/tokenservice/user/" .$apptokenID . "/get_usertoken_by_usertokenid/");
+		$this->log->info("getUserTokenById(), CURLOPT_POSTFIELDS: " . http_build_query(array("apptoken" => $apptokenXML, "usertokenid" => $userTokenId)));
+
 		$usertoken = curl_exec($ch);
+
+		$this->log->info("getUserTokenById(), usertoken: \n" . $usertoken);
 
 		if(curl_errno($ch))
 		{
@@ -136,15 +142,21 @@ class inn_UserToken {
 
 			$ut = simplexml_load_string($usertoken) or die("Error in  printMyTokenFormatted(): Cannot create object");
 
-			$output = "\n<div>\n<p></p>\n<ul>";
+			$output = "\n<div>";
+			$output .= "\n<h3>Profil</h3>";
 			$output .= "\n\t<li>Brukernavn: " . $ut->username . "</li>";
 			$output .= "\n\t<li>Fornavn: " . $ut->firstname . "</li>";
 			$output .= "\n\t<li>Etternavn: " . $ut->lastname . "</li>";
 			$output .= "\n\t<li>E-post: " . $ut->email . "</li>";
-			$output .= "\n\t<li>Leveringsadresse: " . $this->formatDeliveryaddress($this->getAddress($usertoken)) . "</li>";
-			$output .= "\n\t<li>INN-sesjonen startet: " . $this->getDateTimeFromTimestamp($ut->timestamp) . "</li>";
-			$output .= "\n\t<li>INN-sesjonen utløper: " . $this->getDateTimeFromTimestamp($ut->timestamp + $ut->lifespan) . "</li>";
-			$output .= "\n</div>\n</ul>";
+
+			$output .= "\n\t<h3>Leveringsadresse</h3>";
+			$output .= $this->formatDeliveryaddress($this->getAddress($usertoken));
+
+			$output .= "\n<h3>Sesjon</h3>";
+			$output .= "\n\t<p>INN-sesjonen startet: " . $this->getDateTimeFromTimestamp($ut->timestamp);
+			$output .= "\n\t, og utløper: " . $this->getDateTimeFromTimestamp($ut->timestamp + $ut->lifespan) . "</p>";
+
+			$output .= "\n</div>\n";
 
 		} else {
 			$output = "<p>Oops! Ikke en INN-bruker." . $wpusertokenid . "</p>";
