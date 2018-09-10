@@ -88,14 +88,6 @@ class inn_SettingsPage {
         );
 
         add_settings_field(
-            'consent_url', // ID
-            'Consent URL', // Title
-            array( $this, 'consent_url_callback' ), // Callback
-            'inn-setting-admin', // Page
-            'inn_section_id' // Section
-        );
-
-        add_settings_field(
             'app_id',
             'APP_ID',
             array( $this, 'app_id_callback' ),
@@ -166,9 +158,6 @@ class inn_SettingsPage {
         if( isset( $input['sts_url'] ) )
             $new_input['sts_url'] = sanitize_text_field( $input['sts_url'] );
 
-        if( isset( $input['consent_url'] ) )
-            $new_input['consent_url'] = sanitize_text_field( $input['consent_url'] );
-
         if( isset( $input['app_id'] ) )
             $new_input['app_id'] = sanitize_text_field( $input['app_id'] );
 
@@ -217,14 +206,6 @@ class inn_SettingsPage {
         printf(
             '<input type="text" id="sts_url" name="inn-auth_options[sts_url]" value="%s" />',
             isset( $this->options['sts_url'] ) ? esc_attr( $this->options['sts_url']) : 'https://inn-prod-sts.opplysningen.no'
-        );
-    }
-
-    public function consent_url_callback()
-    {
-        printf(
-            '<input type="text" id="consent_url" name="inn-auth_options[consent_url]" value="%s" />',
-            isset( $this->options['consent_url'] ) ? esc_attr( $this->options['consent_url']) : 'getAdressSharingConcent'
         );
     }
 
