@@ -39,11 +39,15 @@ function inn_styles() {
 add_action( 'wp_enqueue_scripts','inn_styles');
 
 function inn_authenticate() {
+	global $options;
+
 	if (isset($_GET["userticket"])) {
 		$userticket = $_GET["userticket"];
 
 		$auth = new inn_authenticate();
 		$redirectURI = $options["app_url"] . strtok($_SERVER["REQUEST_URI"], "?");
+
+		// die("inn_authenticate redirectURI: " . $redirectURI);
 
 		$res = $auth->authenticate($userticket, $redirectURI);
 	}
@@ -189,13 +193,8 @@ function add_inn_user_profile_fields( $user ) {
 	<div id="innfields">
 	<h3><?php _e('INN Profildata', 'inn-auth'); ?></h3>
 		<p>
-		<label for="adresse"><?php _e('Adresse', 'inn-auth'); ?>
-			<input type="text" name="adresse" id="adresse" value="<?php echo esc_attr( get_the_author_meta( 'adresse', $user->ID ) ); ?>" class="regular-text" />
-		</label>
-	</p>
-	<p>
-		<label for="telefon"><?php _e('Telefon', 'inn-auth'); ?>
-			<input type="text" name="telefon" id="telefon" value="<?php echo esc_attr( get_the_author_meta( 'telefon', $user->ID ) ); ?>" class="regular-text" />
+		<label for="inn_username"><?php _e('Brukernavn', 'inn-auth'); ?>
+			<input type="text" name="inn_username" id="inn_username" value="<?php echo esc_attr( get_the_author_meta( 'inn_username', $user->ID ) ); ?>" class="regular-text" />
 		</label>
 	</p>
 	</div>
@@ -211,12 +210,7 @@ function save_inn_user_profile_fields( $user_id ) {
 	if ( !current_user_can( 'edit_user', $user_id ) )
 		return FALSE;
 
-	if ( ! empty( $_POST['adresse'] ) ) {
-		update_user_meta( $user_id, 'adresse', trim( $_POST['adresse'] ) );
-	}
-	if ( ! empty( $_POST['telefon'] ) ) {
-		update_user_meta( $user_id, 'telefon', trim( $_POST['telefon'] ) );
-	}
+	update_user_meta( $user_id, 'inn_username', trim( $_POST['inn_username'] ) );
 }
 
 add_action( 'personal_options_update', 'save_inn_user_profile_fields' );
