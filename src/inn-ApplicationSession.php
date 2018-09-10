@@ -71,7 +71,6 @@ class inn_ApplicationSession {
 	function verifyAppSession() {
 		$apptoken = $this->apptoken->getAppToken();
 		$this->log->info("verifyAppSession apptoken: " . $apptoken);
-		$this->log->info(var_dump($apptoken));
 
 		if($this->apptoken->getAppTokenExpires($apptoken) > time()) {
 			$result = $this->renewAppSession();

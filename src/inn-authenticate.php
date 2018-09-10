@@ -23,6 +23,7 @@ class inn_authenticate {
 
 		$usertoken = $this->utoken->getUserToken($userticket);
 		$this->log->info("authenticate, got usertoken: " . $usertoken);
+		// var_dump($usertoken);
 
 		if (strlen($usertoken) == 0) {
 			$this->log->warn("authenticate: No usertoken.");
@@ -36,7 +37,7 @@ class inn_authenticate {
 			$wp_user_id = $this->wpGetUserByInnUsername($username);
 
 			$this->log->info("authenticate() wp_user_id: " . $wp_user_id . ", username: " . $username);
-			var_dump($wp_user_id);
+			// var_dump($wp_user_id);
 
 			if ($wp_user_id AND !is_user_member_of_blog($user_id, get_current_blog_id())) {
 				//Exist's but is not user to the current blog id
@@ -80,41 +81,53 @@ class inn_authenticate {
 
 		$user_id =  wp_create_user( $user_name, $password, $user_email );
 
-		if ( is_wp_error( $user_id ) )
+		if ( is_wp_error( $user_id ) ) {
 			$this->log->info("wpRegisterUser. wp_create_user error: " . $user_id->get_error_message());
+		} else {
+			$userdata = array(
+				"ID" => $user_id,
+				"user_nicename" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
+				"display_name" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
+				"first_name" => $this->utoken->getFirstName($usertoken),
+				"last_name" => $this->utoken->getLastName($usertoken)
+			);
+			$user_id = wp_update_user($userdata);
 
-		$userdata = array(
-			"ID" => $user_id,
-			"user_nicename" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
-			"display_name" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
-			"first_name" => $this->utoken->getFirstName($usertoken),
-			"last_name" => $this->utoken->getLastName($usertoken)
-		);
-		$user_id = wp_update_user($userdata);
+			update_user_meta( $user_id, 'inn_username', (string)$this->utoken->getPhone($usertoken) );
 
-		update_user_meta( $user_id, 'inn_username', (string)$this->utoken->getPhone($usertoken) );
+			$this->log->info("wpRegisterUser. Registered a new Wordpress user. user_id: " . $user_id);
 
-		$this->log->info("wpRegisterUser. Registered a new Wordpress user. user_id: " . $user_id);
+			return $user_id;
+		}
 
-		return $user_id;
+		return FALSE;
 	}
 
 	function wpGetUserByInnUsername($username) {
-		if ( function_exists( 'get_sites' ) && class_exists( 'WP_Site_Query' ) ) {
-	    $sites = get_sites();
-	    foreach ( $sites as $site ) {
-				$user_id = reset(
-					get_users(array(
-						"blog_id" => $site->blog_id,
-						"meta_key" => "inn_username",
-						"meta_value" => $username,
-						"number" => 1,
-						"count_total" => false,
-						"fields" => "ids"
-				)));
-				if ($user_id) return $user_id;
-	    }
+		$userdata = array(
+			//blog_id" => $site->blog_id,
+			"blod_id" => get_current_blog_id(),
+			"meta_key" => "inn_username",
+			"meta_value" => $username,
+			"number" => 1,
+			"count_total" => false,
+			"fields" => "ids"
+		);
+
+		if( is_multisite() ){
+			if ( function_exists( 'get_sites' ) && class_exists( 'WP_Site_Query' ) ) {
+		    $sites = get_sites();
+		    foreach ( $sites as $site ) {
+					$userdata = array_replace($userdata, array(0 => $site->blog_id));
+					$user_id = reset(get_users($userdata));
+					if ($user_id) return $user_id;
+		    }
+			}
+		} else {
+			$user_id = reset(get_users($userdata));
+			if ($user_id) return $user_id;
 		}
+
 		return FALSE;
 	}
 
@@ -189,9 +202,8 @@ class inn_authenticate {
 
 	function getConsentURL($userticket, $redirectURI) {
 
-		$consenturl = sprintf("%s/%s/%s?userticket=%s&redirectURI=%s",
+		$consenturl = sprintf("%s/getAddressSharingConsent/%s?userticket=%s&redirectURI=%s",
 			$this->options["sso_url"],
-			$this->options["consent_url"],
 			$this->apptoken->getAppTokenID($this->apptoken->getAppToken()),
 			$userticket,
 			$redirectURI
@@ -202,7 +214,7 @@ class inn_authenticate {
 
 	function redirect($redirecturl, $httpStatusCode = 302) {
 		if($this->options["debugmode"] == "all") {
-			echo "<p>We need your consent: <a href=\"" . $consenturl . "\">" . $consenturl . "</a></p>";;
+			echo "<p>Redirect: <a href=\"" . $consenturl . "\">" . $consenturl . "</a></p>";;
 		} else {
 			wp_redirect($redirecturl, $httpStatusCode);
 			exit;
