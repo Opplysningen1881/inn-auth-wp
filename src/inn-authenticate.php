@@ -39,8 +39,8 @@ class inn_authenticate {
 			$this->log->info("authenticate() wp_user_id: " . $wp_user_id . ", username: " . $username);
 			// var_dump($wp_user_id);
 
-			if ($wp_user_id AND !is_user_member_of_blog($user_id, get_current_blog_id())) {
-				//Exist's but is not user to the current blog id
+			if (is_multisite() AND $wp_user_id AND !is_user_member_of_blog($user_id, get_current_blog_id())) {
+				//Exist's in a multisite network but is not user to the current blog id
 				$result = add_user_to_blog( get_current_blog_id(), $user_id, 'subscriber');
 			} elseif (!$wp_user_id) {
 				$wp_user_id = $this->wpRegisterUser($usertoken);
