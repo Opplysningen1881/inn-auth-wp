@@ -127,6 +127,14 @@ class inn_SettingsPage {
             'inn_section_id'
         );
 
+        add_settings_field(
+            'allowed_domains',
+            'Domains that are allowed to register new users',
+            array( $this, 'allowed_domains_callback' ),
+            'inn-setting-admin',
+            'inn_section_id'
+        );
+
 	      add_settings_field(
             'debugmode',
             'Debug Mode [html|console|all]',
@@ -172,6 +180,9 @@ class inn_SettingsPage {
 
         if( isset( $input['app_defcon'] ) )
             $new_input['app_defcon'] = sanitize_text_field( $input['app_defcon'] );
+
+        if( isset( $input['allowed_domains'] ) )
+            $new_input['allowed_domains'] = sanitize_text_field( $input['allowed_domains'] );
 
         if( isset( $input['debugmode'] ) )
             $new_input['debugmode'] = sanitize_text_field( $input['debugmode'] );
@@ -238,6 +249,14 @@ class inn_SettingsPage {
         printf(
             '<input type="text" id="app_url" name="inn-auth_options[app_url]" value="%s" />',
             isset( $this->options['app_url'] ) ? esc_attr( $this->options['app_url']) : ''
+        );
+    }
+
+  public function allowed_domains_callback()
+    {
+        printf(
+            '<input type="text" id="allowed_domains" name="inn-auth_options[allowed_domains]" value="%s" />',
+            isset( $this->options['allowed_domains'] ) ? esc_attr( $this->options['allowed_domains']) : ''
         );
     }
 

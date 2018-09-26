@@ -79,35 +79,35 @@ class inn_UserToken {
 
 	function getUserName($usertoken) {
 		$ut = simplexml_load_string($usertoken);
-		$username = $ut->username;
+		$username = (string)$ut->username;
 
 		return $username;
 	}
 
 	function getFirstName($usertoken) {
 		$ut = simplexml_load_string($usertoken);
-		$firstname = $ut->firstname;
+		$firstname = (string)$ut->firstname;
 
 		return $firstname;
 	}
 
 	function getLastName($usertoken) {
 		$ut = simplexml_load_string($usertoken);
-		$lastname = $ut->lastname;
+		$lastname = (string)$ut->lastname;
 
 		return $lastname;
 	}
 
 	function getPhone($usertoken) {
 		$ut = simplexml_load_string($usertoken);
-		$phone = $ut->cellphone;
+		$phone = (string)$ut->cellphone;
 
 		return $phone;
 	}
 
 	function getEmail($usertoken) {
 		$ut = simplexml_load_string($usertoken);
-		$email = $ut->email;
+		$email = (string)$ut->email;
 
 		return $email;
 	}

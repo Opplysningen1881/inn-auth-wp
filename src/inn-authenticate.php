@@ -39,9 +39,10 @@ class inn_authenticate {
 			$this->log->info("authenticate() wp_user_id: " . $wp_user_id . ", username: " . $username);
 			// var_dump($wp_user_id);
 
-			if (is_multisite() AND $wp_user_id AND !is_user_member_of_blog($user_id, get_current_blog_id())) {
+			if (is_multisite() AND $wp_user_id AND !is_user_member_of_blog($wp_user_id, get_current_blog_id())) {
 				//Exist's in a multisite network but is not user to the current blog id
-				$result = add_user_to_blog( get_current_blog_id(), $user_id, 'subscriber');
+				if($this->isValidEmailDomain($user_email))
+					add_user_to_blog( get_current_blog_id(), $wp_user_id, 'subscriber');
 			} elseif (!$wp_user_id) {
 				$wp_user_id = $this->wpRegisterUser($usertoken);
 			}
@@ -72,32 +73,35 @@ class inn_authenticate {
 			die ("wpRegisterUser: No usertoken.");
 		}
 
+
 		$user_name = $this->utoken->getUserName($usertoken);
 		$user_email = $this->utoken->getEmail($usertoken);
 
-		$password = $this->createPassword($usertoken);
+		if($this->isValidEmailDomain($user_email)) {
+			$password = $this->createPassword($usertoken);
 
-		$this->log->warn(sprintf("wpRegisterUser: Registering a new Wordpress user. User_name=%s, password=HIDDEN, user_email=%s", $user_name, $user_email));
+			$this->log->warn(sprintf("wpRegisterUser: Registering a new Wordpress user. User_name=%s, password=HIDDEN, user_email=%s", $user_name, $user_email));
 
-		$user_id =  wp_create_user( $user_name, $password, $user_email );
+			$user_id =  wp_create_user( $user_name, $password, $user_email );
 
-		if ( is_wp_error( $user_id ) ) {
-			$this->log->info("wpRegisterUser. wp_create_user error: " . $user_id->get_error_message());
-		} else {
-			$userdata = array(
-				"ID" => $user_id,
-				"user_nicename" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
-				"display_name" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
-				"first_name" => $this->utoken->getFirstName($usertoken),
-				"last_name" => $this->utoken->getLastName($usertoken)
-			);
-			$user_id = wp_update_user($userdata);
+			if ( is_wp_error( $user_id ) ) {
+				$this->log->info("wpRegisterUser. wp_create_user error: " . $user_id->get_error_message());
+			} else {
+				$userdata = array(
+					"ID" => $user_id,
+					"user_nicename" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
+					"display_name" => $this->utoken->getFirstName($usertoken) . " " . $this->utoken->getLastName($usertoken),
+					"first_name" => $this->utoken->getFirstName($usertoken),
+					"last_name" => $this->utoken->getLastName($usertoken)
+				);
+				$user_id = wp_update_user($userdata);
 
-			update_user_meta( $user_id, 'inn_username', (string)$this->utoken->getPhone($usertoken) );
+				update_user_meta( $user_id, 'inn_username', (string)$this->utoken->getPhone($usertoken) );
 
-			$this->log->info("wpRegisterUser. Registered a new Wordpress user. user_id: " . $user_id);
+				$this->log->info("wpRegisterUser. Registered a new Wordpress user. user_id: " . $user_id);
 
-			return $user_id;
+				return $user_id;
+			}
 		}
 
 		return FALSE;
@@ -105,28 +109,16 @@ class inn_authenticate {
 
 	function wpGetUserByInnUsername($username) {
 		$userdata = array(
-			//blog_id" => $site->blog_id,
-			"blod_id" => get_current_blog_id(),
+			"blog_id" => is_multisite() ? 0 : get_current_blog_id(),
 			"meta_key" => "inn_username",
 			"meta_value" => $username,
-			"number" => 1,
 			"count_total" => false,
-			"fields" => "ids"
+			"fields" => "ID"
 		);
 
-		if( is_multisite() ){
-			if ( function_exists( 'get_sites' ) && class_exists( 'WP_Site_Query' ) ) {
-		    $sites = get_sites();
-		    foreach ( $sites as $site ) {
-					$userdata = array_replace($userdata, array(0 => $site->blog_id));
-					$user_id = reset(get_users($userdata));
-					if ($user_id) return $user_id;
-		    }
-			}
-		} else {
-			$user_id = reset(get_users($userdata));
-			if ($user_id) return $user_id;
-		}
+		$user_id = reset(get_users($userdata));
+
+		if ($user_id) return $user_id;
 
 		return FALSE;
 	}
@@ -196,6 +188,26 @@ class inn_authenticate {
 		}
 
 		$this->log->info("checkSessionId() result: " . $result);
+
+		return $result;
+	}
+
+	function isValidEmailDomain($user_email) {
+		// Check if the user is allowed to register
+		$this->log->info("isValidEmailDomain() user email: " . $user_email);
+
+		$domains = explode(",", $this->options["allowed_domains"]);
+		$this->log->info("isValidEmailDomain() domains: " . $this->options["allowed_domains"]);
+		$this->log->info("isValidEmailDomain() domain array count: " . count($domains));
+
+		$user_domain = explode("@", $user_email)[1];
+		$this->log->info("isValidEmailDomain() user email domain: " . $user_domain);
+
+		if (count($domains) === 1 && strlen($domains[0]) === 0) {
+			$result = TRUE;
+		} else {
+			$result = in_array($user_domain, $domains);
+		}
 
 		return $result;
 	}
