@@ -4,7 +4,7 @@ Wordpress plugin for Opplysningen INN
 # Installation
 
 ## Prerequisites
-1. A valid INN application account. Create yours on the [INN Self Service portal] (https://inn-prod-ss.opplysningen.no/innss/).
+1. A valid INN application account. Create yours on the [INN Self Service portal](https://inn-prod-ss.opplysningen.no/innss/).
 
 ## Manual installation
 1. Compress all files in the src-directory to a zip file inn-auth.zip.
